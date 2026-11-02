@@ -289,10 +289,6 @@ class AuthAPI:
     def __init__(self, c: "Namespaces") -> None:
         self._c = c
 
-    def login(self, body: AuthLoginBody, *, idempotency_key: Optional[str] = None, dry_run: bool = False) -> AuthLoginResponse:
-        """Sign in; sets the adv_session cookie (POST /v1/auth/login)"""
-        return self._c._request("POST", f"/v1/auth/login", body=body, idempotency_key=idempotency_key, dry_run=dry_run)
-
     def logout(self, *, idempotency_key: Optional[str] = None, dry_run: bool = False) -> None:
         """End the dashboard session (POST /v1/auth/logout)"""
         return self._c._request("POST", f"/v1/auth/logout", idempotency_key=idempotency_key, dry_run=dry_run)
@@ -300,10 +296,6 @@ class AuthAPI:
     def me(self) -> AuthMeResponse:
         """The caller, workspace, scopes and memberships (GET /v1/auth/me)"""
         return self._c._request("GET", f"/v1/auth/me")
-
-    def register(self, body: AuthRegisterBody, *, idempotency_key: Optional[str] = None, dry_run: bool = False) -> AuthLoginResponse:
-        """Create a user and workspace (gated) (POST /v1/auth/register)"""
-        return self._c._request("POST", f"/v1/auth/register", body=body, idempotency_key=idempotency_key, dry_run=dry_run)
 
     def switch_workspace(self, body: AuthSwitchWorkspaceBody, *, idempotency_key: Optional[str] = None, dry_run: bool = False) -> AuthMeResponse:
         """Switch workspace (POST /v1/auth/switch-workspace)"""
@@ -326,6 +318,10 @@ class BillingAPI:
     def portal(self, *, idempotency_key: Optional[str] = None, dry_run: bool = False) -> BillingCheckoutResponse:
         """Open the Stripe customer portal; returns the hosted URL (POST /v1/billing/portal)"""
         return self._c._request("POST", f"/v1/billing/portal", idempotency_key=idempotency_key, dry_run=dry_run)
+
+    def referral(self) -> BillingReferralResponse:
+        """Refer and earn: the signed-in admin partner link and stats from Referalli (admin) (GET /v1/referral)"""
+        return self._c._request("GET", f"/v1/referral")
 
 class BrandingAPI:
     """branding operations."""
@@ -543,10 +539,6 @@ class InvitesAPI:
     def __init__(self, c: "Namespaces") -> None:
         self._c = c
 
-    def accept(self, body: InvitesAcceptBody, *, idempotency_key: Optional[str] = None, dry_run: bool = False) -> AuthLoginResponse:
-        """Accept an invite (session) (POST /v1/auth/invites/accept)"""
-        return self._c._request("POST", f"/v1/auth/invites/accept", body=body, idempotency_key=idempotency_key, dry_run=dry_run)
-
     def create(self, body: InvitesCreateBody, *, idempotency_key: Optional[str] = None, dry_run: bool = False) -> InvitesCreateResponse:
         """Invite someone by email (POST /v1/invites)"""
         return self._c._request("POST", f"/v1/invites", body=body, idempotency_key=idempotency_key, dry_run=dry_run)
@@ -652,6 +644,40 @@ class NotificationsAPI:
     def update_channel(self, id: str, body: NotificationsUpdateChannelBody, *, idempotency_key: Optional[str] = None, dry_run: bool = False) -> NotificationsCreateChannelResponse:
         """Update a channel (PATCH /v1/notification-channels/{id})"""
         return self._c._request("PATCH", f"/v1/notification-channels/{_q(str(id), safe='')}", body=body, idempotency_key=idempotency_key, dry_run=dry_run)
+
+class OperatorAPI:
+    """operator operations."""
+
+    def __init__(self, c: "Namespaces") -> None:
+        self._c = c
+
+    def load_fx_rates(self, body: OperatorLoadFxRatesBody, *, idempotency_key: Optional[str] = None, dry_run: bool = False) -> OperatorLoadFxRatesResponse:
+        """Load FX rates (X-Operator-Token) (PUT /v1/fx-rates)"""
+        return self._c._request("PUT", f"/v1/fx-rates", body=body, idempotency_key=idempotency_key, dry_run=dry_run)
+
+class OpsAPI:
+    """ops operations."""
+
+    def __init__(self, c: "Namespaces") -> None:
+        self._c = c
+
+    def health(self) -> OpsHealthResponse:
+        """Liveness probe (GET /health)"""
+        return self._c._request("GET", f"/health")
+
+    def ready(self) -> OpsReadyResponse:
+        """Readiness (database, queue); 503 when failing (GET /ready)"""
+        return self._c._request("GET", f"/ready")
+
+class PlatformAPI:
+    """platform operations."""
+
+    def __init__(self, c: "Namespaces") -> None:
+        self._c = c
+
+    def platform_config(self) -> PlatformPlatformConfigResponse:
+        """Public ids of the integrated platforms (GET /v1/platform-config)"""
+        return self._c._request("GET", f"/v1/platform-config")
 
 class PlatformsAPI:
     """platforms operations."""
@@ -976,6 +1002,9 @@ class Namespaces:
         self.members = MembersAPI(self)
         self.notes = NotesAPI(self)
         self.notifications = NotificationsAPI(self)
+        self.operator = OperatorAPI(self)
+        self.ops = OpsAPI(self)
+        self.platform = PlatformAPI(self)
         self.platforms = PlatformsAPI(self)
         self.public_reports = PublicReportsAPI(self)
         self.report_schedules = ReportSchedulesAPI(self)

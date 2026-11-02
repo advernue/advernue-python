@@ -289,10 +289,6 @@ class AsyncAuthAPI:
     def __init__(self, c: "AsyncNamespaces") -> None:
         self._c = c
 
-    async def login(self, body: AuthLoginBody, *, idempotency_key: Optional[str] = None, dry_run: bool = False) -> AuthLoginResponse:
-        """Sign in; sets the adv_session cookie (POST /v1/auth/login)"""
-        return await self._c._request("POST", f"/v1/auth/login", body=body, idempotency_key=idempotency_key, dry_run=dry_run)
-
     async def logout(self, *, idempotency_key: Optional[str] = None, dry_run: bool = False) -> None:
         """End the dashboard session (POST /v1/auth/logout)"""
         return await self._c._request("POST", f"/v1/auth/logout", idempotency_key=idempotency_key, dry_run=dry_run)
@@ -300,10 +296,6 @@ class AsyncAuthAPI:
     async def me(self) -> AuthMeResponse:
         """The caller, workspace, scopes and memberships (GET /v1/auth/me)"""
         return await self._c._request("GET", f"/v1/auth/me")
-
-    async def register(self, body: AuthRegisterBody, *, idempotency_key: Optional[str] = None, dry_run: bool = False) -> AuthLoginResponse:
-        """Create a user and workspace (gated) (POST /v1/auth/register)"""
-        return await self._c._request("POST", f"/v1/auth/register", body=body, idempotency_key=idempotency_key, dry_run=dry_run)
 
     async def switch_workspace(self, body: AuthSwitchWorkspaceBody, *, idempotency_key: Optional[str] = None, dry_run: bool = False) -> AuthMeResponse:
         """Switch workspace (POST /v1/auth/switch-workspace)"""
@@ -326,6 +318,10 @@ class AsyncBillingAPI:
     async def portal(self, *, idempotency_key: Optional[str] = None, dry_run: bool = False) -> BillingCheckoutResponse:
         """Open the Stripe customer portal; returns the hosted URL (POST /v1/billing/portal)"""
         return await self._c._request("POST", f"/v1/billing/portal", idempotency_key=idempotency_key, dry_run=dry_run)
+
+    async def referral(self) -> BillingReferralResponse:
+        """Refer and earn: the signed-in admin partner link and stats from Referalli (admin) (GET /v1/referral)"""
+        return await self._c._request("GET", f"/v1/referral")
 
 class AsyncBrandingAPI:
     """branding operations."""
@@ -543,10 +539,6 @@ class AsyncInvitesAPI:
     def __init__(self, c: "AsyncNamespaces") -> None:
         self._c = c
 
-    async def accept(self, body: InvitesAcceptBody, *, idempotency_key: Optional[str] = None, dry_run: bool = False) -> AuthLoginResponse:
-        """Accept an invite (session) (POST /v1/auth/invites/accept)"""
-        return await self._c._request("POST", f"/v1/auth/invites/accept", body=body, idempotency_key=idempotency_key, dry_run=dry_run)
-
     async def create(self, body: InvitesCreateBody, *, idempotency_key: Optional[str] = None, dry_run: bool = False) -> InvitesCreateResponse:
         """Invite someone by email (POST /v1/invites)"""
         return await self._c._request("POST", f"/v1/invites", body=body, idempotency_key=idempotency_key, dry_run=dry_run)
@@ -652,6 +644,40 @@ class AsyncNotificationsAPI:
     async def update_channel(self, id: str, body: NotificationsUpdateChannelBody, *, idempotency_key: Optional[str] = None, dry_run: bool = False) -> NotificationsCreateChannelResponse:
         """Update a channel (PATCH /v1/notification-channels/{id})"""
         return await self._c._request("PATCH", f"/v1/notification-channels/{_q(str(id), safe='')}", body=body, idempotency_key=idempotency_key, dry_run=dry_run)
+
+class AsyncOperatorAPI:
+    """operator operations."""
+
+    def __init__(self, c: "AsyncNamespaces") -> None:
+        self._c = c
+
+    async def load_fx_rates(self, body: OperatorLoadFxRatesBody, *, idempotency_key: Optional[str] = None, dry_run: bool = False) -> OperatorLoadFxRatesResponse:
+        """Load FX rates (X-Operator-Token) (PUT /v1/fx-rates)"""
+        return await self._c._request("PUT", f"/v1/fx-rates", body=body, idempotency_key=idempotency_key, dry_run=dry_run)
+
+class AsyncOpsAPI:
+    """ops operations."""
+
+    def __init__(self, c: "AsyncNamespaces") -> None:
+        self._c = c
+
+    async def health(self) -> OpsHealthResponse:
+        """Liveness probe (GET /health)"""
+        return await self._c._request("GET", f"/health")
+
+    async def ready(self) -> OpsReadyResponse:
+        """Readiness (database, queue); 503 when failing (GET /ready)"""
+        return await self._c._request("GET", f"/ready")
+
+class AsyncPlatformAPI:
+    """platform operations."""
+
+    def __init__(self, c: "AsyncNamespaces") -> None:
+        self._c = c
+
+    async def platform_config(self) -> PlatformPlatformConfigResponse:
+        """Public ids of the integrated platforms (GET /v1/platform-config)"""
+        return await self._c._request("GET", f"/v1/platform-config")
 
 class AsyncPlatformsAPI:
     """platforms operations."""
@@ -976,6 +1002,9 @@ class AsyncNamespaces:
         self.members = AsyncMembersAPI(self)
         self.notes = AsyncNotesAPI(self)
         self.notifications = AsyncNotificationsAPI(self)
+        self.operator = AsyncOperatorAPI(self)
+        self.ops = AsyncOpsAPI(self)
+        self.platform = AsyncPlatformAPI(self)
         self.platforms = AsyncPlatformsAPI(self)
         self.public_reports = AsyncPublicReportsAPI(self)
         self.report_schedules = AsyncReportSchedulesAPI(self)
